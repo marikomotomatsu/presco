@@ -1,0 +1,48 @@
+name: Run Python Script
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 毎日1時間ごとに実行
+  workflow_dispatch:
+
+jobs:
+  run-python:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Chrome & Selenium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+          pip install selenium webdriver-manager
+
+      - name: Create config directory
+        run: mkdir -p config
+
+      - name: Debug Environment Variables
+        run: |
+          if [ -z "${{ secrets.GOOGLE_CREDENTIALS }}" ]; then
+            echo "Error: GOOGLE_CREDENTIALS is not set in GitHub Secrets"
+            exit 1
+          else
+            echo "GOOGLE_CREDENTIALS is set."
+          fi
+
+      - name: Execute Python script
+        run: python presco.py
+        env:
+          PRESCO_USERNAME: ${{ secrets.PRESCO_USERNAME }}
+          PRESCO_PASSWORD: ${{ secrets.PRESCO_PASSWORD }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
