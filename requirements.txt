@@ -1,0 +1,6 @@
+requests >= 2.32.3
+numpy >= 1.26.4
+pandas >= 2.2.2
+selenium >= 4.28.1
+gspread >= 6.1.4
+oauth2client >= 4.1.3
