@@ -28,17 +28,20 @@ jobs:
           sudo apt-get install -y chromium-browser
           pip install selenium webdriver-manager
 
-      - name: Create config directory
-        run: mkdir -p config
+      - name: Debug Chromium Path 
+        run: which chromium-browser
 
-      - name: Debug Environment Variables
-        run: |
-          if [ -z "${{ secrets.GOOGLE_CREDENTIALS }}" ]; then
-            echo "Error: GOOGLE_CREDENTIALS is not set in GitHub Secrets"
-            exit 1
-          else
-            echo "GOOGLE_CREDENTIALS is set."
-          fi
+      # - name: Create config directory
+      #   run: mkdir -p config
+
+      # - name: Debug Environment Variables
+      #   run: |
+      #     if [ -z "${{ secrets.GOOGLE_CREDENTIALS }}" ]; then
+      #       echo "Error: GOOGLE_CREDENTIALS is not set in GitHub Secrets"
+      #       exit 1
+      #     else
+      #       echo "GOOGLE_CREDENTIALS is set."
+      #     fi
 
       - name: Execute Python script
         run: python presco.py
