@@ -8,15 +8,32 @@ from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 script_dir = os.path.dirname(os.path.abspath(__file__))  # 現在のパス
 
-# Googleの設定
-SPREADSHEET_ID = "1zCBRVmsHL01MsIrbpd_Egrni41jc4Aa176SBIN5Z5Sc"  # スプレッドシートのID
-CREDENTIALS_JSON = os.path.join(script_dir, "config/presco-449403-46c323ddf618.json")  # Google API 認証 JSON
+# GitHub Secrets から Google認証情報を復元
+GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
+if GOOGLE_CREDENTIALS is None:
+    raise ValueError("GOOGLE_CREDENTIALS が環境変数に設定されていません。")
+
+# Google認証情報を JSON ファイルとして復元
+credentials_path = os.path.join(script_dir, "config/presco-credentials.json")
+os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+with open(credentials_path, "w") as f:
+    f.write(GOOGLE_CREDENTIALS)
+
+# Googleスプレッドシート設定
+SPREADSHEET_ID = "1zCBRVmsHL01MsIrbpd_Egrni41jc4Aa176SBIN5Z5Sc"
+# GitHub Secrets から PRESCOログイン情報を取得**
+USERNAME = os.getenv("PRESCO_USERNAME")
+PASSWORD = os.getenv("PRESCO_PASSWORD")
+
+if USERNAME is None or PASSWORD is None:
+    raise ValueError("ログイン情報が環境変数に設定されていません。")
 
 # Selenium を使用してログイン
 options = webdriver.ChromeOptions()
@@ -29,8 +46,8 @@ driver.get("https://presco.ai/partner/auth/loginForm")
 time.sleep(3)  # ページ読み込み待機
 
 # ログイン情報を入力
-driver.find_element(By.NAME, "username").send_keys("nhst21@gmail.com")
-driver.find_element(By.NAME, "password").send_keys("Piolet001+")
+driver.find_element(By.NAME, "username").send_keys(USERNAME)
+driver.find_element(By.NAME, "password").send_keys(PASSWORD)
 
 # ログインボタンをクリック
 driver.find_element(By.XPATH, "//input[@type='submit']").click()
@@ -77,7 +94,7 @@ if csv_response.status_code == 200:
 
     # Google Sheets API に認証
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDENTIALS_JSON, scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
     client = gspread.authorize(creds)
 
     # スプレッドシートを開く
