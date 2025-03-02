@@ -36,3 +36,4 @@ jobs:
           PRESCO_USERNAME: ${{ secrets.PRESCO_USERNAME }}
           PRESCO_PASSWORD: ${{ secrets.PRESCO_PASSWORD }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
