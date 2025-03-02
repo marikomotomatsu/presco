@@ -21,14 +21,17 @@ os.makedirs(user_data_dir, exist_ok=True)  # 再作成
 
 # Selenium の設定
 options = webdriver.ChromeOptions()
-options.binary_location = "/usr/bin/chromium-browser"  # Chromium のパスを明示的に指定
+options.add_argument("--headless=new")  # ヘッドレスモードを新しいバージョンに変更
+options.add_argument("--disable-gpu")  # GPUを無効化
 options.add_argument("--no-sandbox")  # サンドボックスを無効化
-options.add_argument("--disable-dev-shm-usage")  # `/dev/shm` のメモリ制限回避
-options.add_argument("--headless")  # ヘッドレスモード
-options.add_argument("--disable-gpu")  # GPU 無効化
-options.add_argument("--remote-debugging-port=9222")
+options.add_argument("--disable-dev-shm-usage")  # /dev/shmのメモリ制限回避
+options.add_argument("--remote-debugging-port=9222")  # DevToolsActivePortを確保
+options.add_argument("--disable-software-rasterizer")  # ソフトウェアのレンダリングを無効化
+options.add_argument("--enable-logging")
+options.add_argument("--log-level=0")
+options.add_argument("--verbose")
 options.add_argument(f"--user-data-dir={user_data_dir}")  # 安全な user-data-dir
-options.add_argument("--disable-software-rasterizer")
+# options.add_argument("--disable-software-rasterizer")
 
 # Chrome WebDriverをセットアップ
 service = Service(ChromeDriverManager().install())
