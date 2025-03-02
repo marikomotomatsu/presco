@@ -108,7 +108,6 @@ if csv_response.status_code == 200:
     SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
     if SPREADSHEET_ID is None:
         raise ValueError("SPREADSHEET_ID が環境変数に設定されていません。")
-    # SPREADSHEET_ID = "1zCBRVmsHL01MsIrbpd_Egrni41jc4Aa176SBIN5Z5Sc"
     copy_sheet = client.open_by_key(SPREADSHEET_ID).worksheet("presco_今月の成果")
     paste_sheet = client.open_by_key(SPREADSHEET_ID).worksheet("presco_成果結果リスト")
 
