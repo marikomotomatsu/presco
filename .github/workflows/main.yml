@@ -27,12 +27,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
 
-      - name: Debug Chromium Path 
-        run: which chromium-browser
-
-      - name: Debug Chromedriver Path
-        run: which chromedriver
-
       - name: Set Chromedriver Permissions
         run: sudo chmod +x /usr/bin/chromedriver
 
