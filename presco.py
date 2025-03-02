@@ -5,47 +5,38 @@ import io
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
+import tempfile
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-script_dir = os.path.dirname(os.path.abspath(__file__))  # 現在のパス
+# 一意のuser-data-dirを作成
+user_data_dir = tempfile.mkdtemp()
 
-# GitHub Secrets から Google認証情報を復元
-GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
-if GOOGLE_CREDENTIALS is None:
-    raise ValueError("GOOGLE_CREDENTIALS が環境変数に設定されていません。")
-
-# Google認証情報を JSON ファイルとして復元
-credentials_path = os.path.join(script_dir, "config/presco-credentials.json")
-os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
-with open(credentials_path, "w") as f:
-    f.write(GOOGLE_CREDENTIALS)
-
-# Googleスプレッドシート設定
-SPREADSHEET_ID = "1zCBRVmsHL01MsIrbpd_Egrni41jc4Aa176SBIN5Z5Sc"
-# GitHub Secrets から PRESCOログイン情報を取得**
-USERNAME = os.getenv("PRESCO_USERNAME")
-PASSWORD = os.getenv("PRESCO_PASSWORD")
-
-if USERNAME is None or PASSWORD is None:
-    raise ValueError("ログイン情報が環境変数に設定されていません。")
-
-# Selenium を使用してログイン
+# Seleniumの設定
 options = webdriver.ChromeOptions()
-# options.add_argument("--headless")
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=options)
+options.add_argument(f"--user-data-dir={user_data_dir}")  # ランダムなフォルダを指定
+
+# Chrome WebDriverをセットアップ
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=options)
 
-# ログインページを開く
-driver.get("https://presco.ai/partner/auth/loginForm")
-time.sleep(3)  # ページ読み込み待機
+# GitHub SecretsからPRESCOログイン情報を復元
+USERNAME = os.getenv("PRESCO_USERNAME")
+PASSWORD = os.getenv("PRESCO_PASSWORD")
+if USERNAME is None or PASSWORD is None:
+    raise ValueError("ログイン情報が環境変数に設定されていません。")
 
-# ログイン情報を入力
+# PRESCOログインページを開く
+driver.get("https://presco.ai/partner/auth/loginForm")
+time.sleep(3)
+
+# PRESCOログイン情報を入力
 driver.find_element(By.NAME, "username").send_keys(USERNAME)
 driver.find_element(By.NAME, "password").send_keys(PASSWORD)
 
@@ -53,13 +44,13 @@ driver.find_element(By.NAME, "password").send_keys(PASSWORD)
 driver.find_element(By.XPATH, "//input[@type='submit']").click()
 time.sleep(5)  # ログイン処理待機
 
-# Selenium のクッキーを requests に適用
+# Seleniumのクッキーをrequestsに適用
 session = requests.Session()
 cookies = driver.get_cookies()
 for cookie in cookies:
     session.cookies.set(cookie["name"], cookie["value"])
 
-# Selenium の User-Agent を requests に適用
+# SeleniumのUser-Agentをrequestsに適用
 user_agent = driver.execute_script("return navigator.userAgent;")
 session.headers.update({
     "User-Agent": user_agent,
@@ -89,19 +80,31 @@ csv_response = session.get(download_url)
 if csv_response.status_code == 200:
     print("CSVダウンロード成功！")
     
-    # CSVデータを DataFrame に読み込む
+    # CSVデータをDataFrameに読み込む
     csv_data = pd.read_csv(io.StringIO(csv_response.text))
 
-    # Google Sheets API に認証
+    # GitHub SecretsからGoogle認証情報を復元
+    GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
+    if GOOGLE_CREDENTIALS is None:
+        raise ValueError("GOOGLE_CREDENTIALS が環境変数に設定されていません。")
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))  # 現在のパス
+    credentials_path = os.path.join(script_dir, "config/presco-credentials.json")
+    os.makedirs(os.path.dirname(credentials_path), exist_ok=True)
+    with open(credentials_path, "w") as f:
+        f.write(GOOGLE_CREDENTIALS)
+
+    # Google Sheets APIに認証
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name(credentials_path, scope)
     client = gspread.authorize(creds)
 
     # スプレッドシートを開く
+    SPREADSHEET_ID = "1zCBRVmsHL01MsIrbpd_Egrni41jc4Aa176SBIN5Z5Sc"
     copy_sheet = client.open_by_key(SPREADSHEET_ID).worksheet("presco_今月の成果")
     paste_sheet = client.open_by_key(SPREADSHEET_ID).worksheet("presco_成果結果リスト")
 
-    # Google スプレッドシートにアップロード
+    # スプレッドシートにアップロード
     copy_sheet.clear()  # 既存データをクリア
     csv_data = csv_data.fillna("")  # NaN を空白に変換
     copy_sheet.update([csv_data.columns.values.tolist()] + csv_data.values.tolist())
