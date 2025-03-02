@@ -5,7 +5,6 @@ import io
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import tempfile
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -14,13 +13,16 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # 一意のuser-data-dirを作成
-user_data_dir = tempfile.mkdtemp()
+user_data_dir = "/tmp/chrome-user-data"
 
-# Seleniumの設定
+# Selenium の設定
 options = webdriver.ChromeOptions()
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=options)
-options.add_argument(f"--user-data-dir={user_data_dir}")  # ランダムなフォルダを指定
+options.binary_location = "/usr/bin/chromium-browser"  # Chromium のパスを明示的に指定
+options.add_argument("--no-sandbox")  # サンドボックスを無効化
+options.add_argument("--disable-dev-shm-usage")  # `/dev/shm` のメモリ制限回避
+options.add_argument("--headless")  # ヘッドレスモード
+options.add_argument("--disable-gpu")  # GPU 無効化
+options.add_argument(f"--user-data-dir={user_data_dir}")  # 安全な user-data-dir
 
 # Chrome WebDriverをセットアップ
 service = Service(ChromeDriverManager().install())
