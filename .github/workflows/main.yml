@@ -35,5 +35,5 @@ jobs:
         env:
           PRESCO_USERNAME: ${{ secrets.PRESCO_USERNAME }}
           PRESCO_PASSWORD: ${{ secrets.PRESCO_PASSWORD }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          # SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
