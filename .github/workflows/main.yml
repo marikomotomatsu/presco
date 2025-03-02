@@ -29,6 +29,9 @@ jobs:
 
       - name: Set Chromedriver Permissions
         run: sudo chmod +x /usr/bin/chromedriver
+        
+      - name: Test network connectivity
+        run: curl -v https://presco.ai/partner/auth/loginForm
 
       - name: Execute Python script
         run: python presco.py
