@@ -22,14 +22,19 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Chrome & Selenium
+      - name: Install Chrome & Chromedriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser
-          pip install selenium webdriver-manager
+          sudo apt-get install -y chromium-browser chromium-chromedriver
 
       - name: Debug Chromium Path 
         run: which chromium-browser
+
+      - name: Debug Chromedriver Path
+        run: which chromedriver
+
+      - name: Set Chromedriver Permissions
+        run: sudo chmod +x /usr/bin/chromedriver
 
       - name: Execute Python script
         run: python presco.py
