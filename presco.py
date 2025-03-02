@@ -19,19 +19,22 @@ if os.path.exists(user_data_dir):
     shutil.rmtree(user_data_dir)  # フォルダを削除
 os.makedirs(user_data_dir, exist_ok=True)  # 再作成
 
+# User-Agent を明示的に指定
+CUSTOM_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
 # Selenium の設定
 options = webdriver.ChromeOptions()
 options.add_argument("--headless=new")  # ヘッドレスモードを新しいバージョンに変更
 options.add_argument("--disable-gpu")  # GPUを無効化
 options.add_argument("--no-sandbox")  # サンドボックスを無効化
-options.add_argument("--disable-dev-shm-usage")  # /dev/shmのメモリ制限回避
-options.add_argument("--remote-debugging-port=9222")  # DevToolsActivePortを確保
+options.add_argument("--disable-dev-shm-usage")  # `/dev/shm` のメモリ制限回避
+options.add_argument("--remote-debugging-port=9222")  # DevToolsActivePort を確保
 options.add_argument("--disable-software-rasterizer")  # ソフトウェアのレンダリングを無効化
 options.add_argument("--enable-logging")
 options.add_argument("--log-level=0")
 options.add_argument("--verbose")
 options.add_argument(f"--user-data-dir={user_data_dir}")  # 安全な user-data-dir
-# options.add_argument("--disable-software-rasterizer")
+options.add_argument(f"user-agent={CUSTOM_USER_AGENT}")  # 明示的に User-Agent を設定
 
 # Chrome WebDriverをセットアップ
 service = Service(ChromeDriverManager().install())
@@ -61,10 +64,9 @@ cookies = driver.get_cookies()
 for cookie in cookies:
     session.cookies.set(cookie["name"], cookie["value"])
 
-# SeleniumのUser-Agentをrequestsに適用
-user_agent = driver.execute_script("return navigator.userAgent;")
+# `requests` の User-Agent も統一
 session.headers.update({
-    "User-Agent": user_agent,
+    "User-Agent": CUSTOM_USER_AGENT,
     "Referer": "https://presco.ai/partner/actionLog/list",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
     "Accept-Encoding": "gzip, deflate, br",
@@ -73,17 +75,9 @@ session.headers.update({
 
 # 日付を指定してダウンロードURLを作成
 today = datetime.today()
-today_year = today.strftime("%Y")
-today_month = today.strftime("%m")
-today_date = today.strftime("%d")
-
-# 昨日の日付
 yesterday = today - timedelta(days=1)
-yesterday_year = yesterday.strftime("%Y")
-yesterday_month = yesterday.strftime("%m")
-yesterday_date = yesterday.strftime("%d")
 
-download_url = f"https://presco.ai/partner/actionLog/download?searchType=2&dateTimeFrom={yesterday_year}/{yesterday_month}/{yesterday_date}/01&dateTimeTo={today_year}/{today_month}/{today_date}"
+download_url = f"https://presco.ai/partner/actionLog/download?searchType=2&dateTimeFrom={yesterday.strftime('%Y/%m/%d')}/01&dateTimeTo={today.strftime('%Y/%m/%d')}"
 
 # CSVデータをダウンロード
 csv_response = session.get(download_url)
@@ -158,4 +152,3 @@ else:
 
 # ブラウザを閉じる
 driver.quit()
-
