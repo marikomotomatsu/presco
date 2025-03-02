@@ -2,6 +2,7 @@ import requests
 import time
 import os
 import io
+import shutil
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -14,6 +15,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # 一意のuser-data-dirを作成
 user_data_dir = "/tmp/chrome-user-data"
+if os.path.exists(user_data_dir):
+    shutil.rmtree(user_data_dir)  # フォルダを削除
+os.makedirs(user_data_dir, exist_ok=True)  # 再作成
 
 # Selenium の設定
 options = webdriver.ChromeOptions()
@@ -22,7 +26,9 @@ options.add_argument("--no-sandbox")  # サンドボックスを無効化
 options.add_argument("--disable-dev-shm-usage")  # `/dev/shm` のメモリ制限回避
 options.add_argument("--headless")  # ヘッドレスモード
 options.add_argument("--disable-gpu")  # GPU 無効化
+options.add_argument("--remote-debugging-port=9222")
 options.add_argument(f"--user-data-dir={user_data_dir}")  # 安全な user-data-dir
+options.add_argument("--disable-software-rasterizer")
 
 # Chrome WebDriverをセットアップ
 service = Service(ChromeDriverManager().install())
