@@ -84,9 +84,11 @@ csv_response = session.get(download_url)
 
 if csv_response.status_code == 200:
     print("CSVダウンロード成功！")
+    print(csv_response)
     
     # CSVデータをDataFrameに読み込む
     csv_data = pd.read_csv(io.StringIO(csv_response.text))
+    print(csv_data)
 
     # GitHub SecretsからGoogle認証情報を復元
     GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
