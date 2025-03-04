@@ -84,7 +84,6 @@ csv_response = session.get(download_url)
 
 if csv_response.status_code == 200:
     print("CSVダウンロード成功！")
-    print(csv_response)
     
     # CSVデータをDataFrameに読み込む
     csv_data = pd.read_csv(io.StringIO(csv_response.text))
@@ -121,36 +120,39 @@ if csv_response.status_code == 200:
     # 既存データを取得
     paste_data = paste_sheet.get_all_values() 
     paste_df = pd.DataFrame(paste_data[1:], columns=paste_data[0])  # 最初の行をヘッダーとする
-    paste_df.replace("", np.nan, inplace=True)
-    paste_df = paste_df.dropna(subset=[paste_df.columns[0], paste_df.columns[1]]).reset_index(drop=True)
-    paste_existing_pairs = set(zip(paste_df.iloc[:, 0], paste_df.iloc[:, 1]))  # (A列, B列) のタプルセットを作成
-
-    # 新規データを取得
-    copy_data = copy_sheet.get_all_values()  
-    copy_df = pd.DataFrame(copy_data[1:], columns=copy_data[0])  # 最初の行をヘッダーとする
-    filtered_copy_df = copy_df[~copy_df.apply(lambda row: (row.iloc[0], row.iloc[1]) in paste_existing_pairs, axis=1)]
-    filtered_copy_df = filtered_copy_df.iloc[:, :19]  # A列からS列を取得
-    new_values = filtered_copy_df.values.tolist()  # リスト化
-
-    # Google Sheets の最大行数を取得
-    current_row_count = paste_sheet.row_count
-
-    # 貼り付け範囲を計算
-    start_row = len(paste_df) + 2
-    end_row = start_row + len(new_values) - 1
-    range_to_update = f"A{start_row}:S{end_row}"
-
-    # 新規データがスプレッドシートの最大行数を超えそうなら行を追加
-    if end_row > current_row_count:
-        extra_rows = end_row - current_row_count
-        paste_sheet.add_rows(extra_rows)  # 必要な行を追加
-
-    # AからS列の範囲を指定して貼り付け
-    if new_values:
-        paste_sheet.update(range_name=range_to_update, values=new_values, value_input_option="USER_ENTERED")
-        print(f"スプレッドシートに新規データを追加しました。")
+    if not paste_df.empty:
+        paste_df.replace("", np.nan, inplace=True)
+        paste_df = paste_df.dropna(subset=[paste_df.columns[0], paste_df.columns[1]]).reset_index(drop=True)
+        paste_existing_pairs = set(zip(paste_df.iloc[:, 0], paste_df.iloc[:, 1]))  # (A列, B列) のタプルセットを作成
+    
+        # 新規データを取得
+        copy_data = copy_sheet.get_all_values()  
+        copy_df = pd.DataFrame(copy_data[1:], columns=copy_data[0])  # 最初の行をヘッダーとする
+        filtered_copy_df = copy_df[~copy_df.apply(lambda row: (row.iloc[0], row.iloc[1]) in paste_existing_pairs, axis=1)]
+        filtered_copy_df = filtered_copy_df.iloc[:, :19]  # A列からS列を取得
+        new_values = filtered_copy_df.values.tolist()  # リスト化
+    
+        # Google Sheets の最大行数を取得
+        current_row_count = paste_sheet.row_count
+    
+        # 貼り付け範囲を計算
+        start_row = len(paste_df) + 2
+        end_row = start_row + len(new_values) - 1
+        range_to_update = f"A{start_row}:S{end_row}"
+    
+        # 新規データがスプレッドシートの最大行数を超えそうなら行を追加
+        if end_row > current_row_count:
+            extra_rows = end_row - current_row_count
+            paste_sheet.add_rows(extra_rows)  # 必要な行を追加
+    
+        # AからS列の範囲を指定して貼り付け
+        if new_values:
+            paste_sheet.update(range_name=range_to_update, values=new_values, value_input_option="USER_ENTERED")
+            print(f"スプレッドシートに新規データを追加しました。")
+        else:
+            print("新規データはありません。")
     else:
-        print("新規データはありません。")
+        print("スプレッドシートの取得に失敗しました。")
 else:
     print("CSVのダウンロードに失敗しました。ステータスコード:", csv_response.status_code)
 
