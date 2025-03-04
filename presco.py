@@ -87,7 +87,7 @@ if csv_response.status_code == 200:
     
     # CSVデータをDataFrameに読み込む
     csv_data = pd.read_csv(io.StringIO(csv_response.text))
-    print(csv_data)
+    print(csv_data.tail(20))
 
     # GitHub SecretsからGoogle認証情報を復元
     GOOGLE_CREDENTIALS = os.getenv("GOOGLE_CREDENTIALS")
@@ -121,6 +121,8 @@ if csv_response.status_code == 200:
     paste_data = paste_sheet.get_all_values() 
     paste_df = pd.DataFrame(paste_data[1:], columns=paste_data[0])  # 最初の行をヘッダーとする
     if not paste_df.empty:
+        print("既存データ")
+        print(paste_df.tail(20))
         paste_df.replace("", np.nan, inplace=True)
         paste_df = paste_df.dropna(subset=[paste_df.columns[0], paste_df.columns[1]]).reset_index(drop=True)
         paste_existing_pairs = set(zip(paste_df.iloc[:, 0], paste_df.iloc[:, 1]))  # (A列, B列) のタプルセットを作成
