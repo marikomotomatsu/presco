@@ -76,8 +76,10 @@ session.headers.update({
 # 日付を指定してダウンロードURLを作成
 today = datetime.today()
 yesterday = today - timedelta(days=1)
+tomorrow = today + timedelta(days=1)
 
-download_url = f"https://presco.ai/partner/actionLog/download?searchType=2&dateTimeFrom={yesterday.strftime('%Y/%m/%d')}/01&dateTimeTo={today.strftime('%Y/%m/%d')}"
+# download_url = f"https://presco.ai/partner/actionLog/download?searchType=2&dateTimeFrom={yesterday.strftime('%Y/%m/%d')}/01&dateTimeTo={today.strftime('%Y/%m/%d')}"
+download_url = f"https://presco.ai/partner/actionLog/download?searchType=2&dateTimeFrom={yesterday.strftime('%Y/%m/%d')}/01&dateTimeTo={tomorrow.strftime('%Y/%m/%d')}"
 
 # CSVデータをダウンロード
 csv_response = session.get(download_url)
