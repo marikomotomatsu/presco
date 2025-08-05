@@ -19,10 +19,10 @@ if os.path.exists(user_data_dir):
     shutil.rmtree(user_data_dir)  # フォルダを削除
 os.makedirs(user_data_dir, exist_ok=True)  # 再作成
 
-# User-Agent を明示的に指定
+# User-Agentを明示的に指定
 CUSTOM_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
-# Selenium の設定
+# Seleniumの設定
 options = webdriver.ChromeOptions()
 options.add_argument("--headless=new")  # ヘッドレスモードを新しいバージョンに変更
 options.add_argument("--disable-gpu")  # GPUを無効化
