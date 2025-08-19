@@ -138,8 +138,8 @@ if csv_response.status_code == 200:
         # 既存データと重複しないデータを抽出
         filtered_copy_df = copy_df[~copy_df.apply(lambda row: (row.iloc[0], row.iloc[1]) in paste_existing_pairs, axis=1)]
 
-        # 「媒体名」に「転職」が含まれない行を除外
-        filtered_copy_df = filtered_copy_df[filtered_copy_df['媒体名'].str.contains('転職', na=False)]
+        # 「サイト名」に「転職」が含まれない行を除外
+        filtered_copy_df = filtered_copy_df[filtered_copy_df['サイト名'].str.contains('転職', na=False)]
 
         # A列からS列を取得
         filtered_copy_df = filtered_copy_df.iloc[:, :19] 
